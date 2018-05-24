@@ -31,7 +31,8 @@ public class DatanodeServer {
 		String serverURI = String.format("http://%s:%s/", ip, DATANODE_PORT);
 
 		ResourceConfig config = new ResourceConfig();
-		config.register(new DatanodeResources(serverURI));
+		//config.register(new DatanodeResources(serverURI));
+		config.register(new DatanodeProxy(serverURI));
 
 		JdkHttpServerFactory.createHttpServer(URI.create(serverURI.replace(ip, "0.0.0.0")), config);
 
