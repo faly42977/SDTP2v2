@@ -40,6 +40,7 @@ public class RestBlobStorage implements BlobStorage {
 		this.datanodes = new Datanode[] { new RestDatanodeClient( Discover.uriOf( DATANODE)) };
 		this.blockWritePolicy = blockWritePolicy;
 		new Thread( this::discoverDatanodes ).start();
+		new Thread( this::discoverNamenodes ).start();
 	}
 
 	private RestBlobStorage(URI namenode, URI datanode, BiFunction<String, Integer, Integer> blockWritePolicy) {
@@ -47,6 +48,7 @@ public class RestBlobStorage implements BlobStorage {
 		this.datanodes = new Datanode[] { new RestDatanodeClient( datanode ),  };
 		this.blockWritePolicy = blockWritePolicy;
 		new Thread( this::discoverDatanodes ).start();
+		new Thread( this::discoverNamenodes ).start();
 	}
 
 	public int  randomPickNamenode() {
@@ -87,6 +89,24 @@ public class RestBlobStorage implements BlobStorage {
 						.map( uri -> new RestDatanodeClient( uri ) )
 						.collect( Collectors.toList() )
 						.toArray( new Datanode[uris.size()]);
+			}
+			Sleep.ms(RETRY_PERIOD);			
+		}
+	}
+	
+	public void discoverNamenodes() {
+		final int RETRY_PERIOD = 100;
+		
+		// keep the uris sorted to have consistency of the indexes across instances...
+		Set<URI> uris = new TreeSet<>( this::uriComparator );
+		for(;;) {
+			if( uris.addAll( Discover.urisOf(NAMENODE) ) ) {
+				
+				//creates a new array of datanode clients (sorted according to their uri).
+				namenodes = uris.stream()
+						.map( uri -> new RestNamenodeClient( uri ) )
+						.collect( Collectors.toList() )
+						.toArray( new Namenode[uris.size()]);
 			}
 			Sleep.ms(RETRY_PERIOD);			
 		}

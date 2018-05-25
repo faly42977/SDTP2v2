@@ -93,8 +93,7 @@ public class Discover {
 	// Does not return until at least one uri for the given service is found
 	public static List<URI> urisOf(String name) {
 		Set<URI> uris;
-		while ( (uris = Discover.search(name, 1)).isEmpty())
-			;
+		while ( (uris = Discover.search(name, 1)).isEmpty());
 		return new ArrayList<>( uris );
 	}
 }
