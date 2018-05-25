@@ -21,8 +21,7 @@ import utils.Sleep;
 public class RestBlobStorage implements BlobStorage {
 	
 	private static final int BLOCK_SIZE = 1024;
-
-	protected Namenode namenode;
+	protected volatile Namenode[] namenodes;
 	protected volatile Datanode[] datanodes;
 	protected BiFunction<String, Integer, Integer> blockWritePolicy;
 	
@@ -37,38 +36,42 @@ public class RestBlobStorage implements BlobStorage {
 	}
 	
 	protected RestBlobStorage(Namenode namenode, BiFunction<String, Integer, Integer> blockWritePolicy) {
-		this.namenode = namenode;
+		this.namenodes = new Namenode[] { new RestNamenodeClient( Discover.uriOf( NAMENODE)) };
 		this.datanodes = new Datanode[] { new RestDatanodeClient( Discover.uriOf( DATANODE)) };
 		this.blockWritePolicy = blockWritePolicy;
 		new Thread( this::discoverDatanodes ).start();
 	}
 
 	private RestBlobStorage(URI namenode, URI datanode, BiFunction<String, Integer, Integer> blockWritePolicy) {
-		this.namenode = new RestNamenodeClient(namenode);
+		this.namenodes = new Namenode[] { new RestNamenodeClient( namenode ),  };
 		this.datanodes = new Datanode[] { new RestDatanodeClient( datanode ),  };
 		this.blockWritePolicy = blockWritePolicy;
 		new Thread( this::discoverDatanodes ).start();
 	}
 
+	public int  randomPickNamenode() {
+		return (int) (Math.random() * namenodes.length);
+	}
+	
 	
 	@Override
 	public List<String> listBlobs(String prefix) {
-		return namenode.list(prefix);
+		return namenodes[randomPickNamenode()].list(prefix);
 	}
 
 	@Override
 	public void deleteBlobs(String prefix) {
-		namenode.delete(prefix);
+		namenodes[randomPickNamenode()].delete(prefix);
 	}
 
 	@Override
 	public BlobReader readBlob(String name) {
-		return new BufferedBlobReader( name, namenode, datanodes[0]);
+		return new BufferedBlobReader( name, namenodes[randomPickNamenode()], datanodes[0]);
 	}
 
 	@Override
 	public BlobWriter blobWriter(String name) {
-		return new BufferedBlobWriter( name, namenode, datanodes, BLOCK_SIZE, blockWritePolicy);
+		return new BufferedBlobWriter( name, namenodes[randomPickNamenode()], datanodes, BLOCK_SIZE, blockWritePolicy);
 	}
 
 	public void discoverDatanodes() {
