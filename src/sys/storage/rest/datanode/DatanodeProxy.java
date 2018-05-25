@@ -14,20 +14,20 @@ public class DatanodeProxy implements Datanode {
 	}
 	public String createBlock(byte[] data, String blob) {
 		String blockId= utils.Random.key64();
-		DropboxClient.createFile("/"+blockId, data);
+		DropboxClient.createFile("/Datanode/"+blockId, data);
 		return address + PATH + "/" + blockId;
 	}
 
 	@Override
 	public void deleteBlock(String block) {
-		if(!DropboxClient.delete(block))
+		if(!DropboxClient.delete("/Datanode/" +block))
 			throw new WebApplicationException(Status.NOT_FOUND);
 
 	}
 
 	@Override
 	public byte[] readBlock(String block) {
-		byte[] file= DropboxClient.getFile(block);
+		byte[] file= DropboxClient.getFile("/Datanode/" +block);
 		if(file==null)
 			throw new WebApplicationException(Status.NOT_FOUND);
 		return file;

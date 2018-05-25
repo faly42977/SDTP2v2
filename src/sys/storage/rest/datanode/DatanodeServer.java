@@ -32,8 +32,6 @@ public class DatanodeServer {
 
 		ResourceConfig config = new ResourceConfig();
 		config.register(new DatanodeResources(serverURI));
-		//config.register(new DatanodeProxy(serverURI));
-
 		JdkHttpServerFactory.createHttpServer(URI.create(serverURI.replace(ip, "0.0.0.0")), config);
 
 		System.err.printf("Datanode Server ready @ %s%s\n", serverURI, Datanode.PATH.substring(1));
