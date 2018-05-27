@@ -19,7 +19,7 @@ import utils.kafka.KafkaNamenodeObject;
 
 public class NamenodeResourcesKafka implements Namenode {
 	private static String TOPIC = "SDT";
-	private static int SLEEP_TIME = 500;
+	private static int SLEEP_TIME = 10;
 
 	private KafkaClient kafka;
 	private Queue<String> kafkaQueueReciever;
@@ -28,6 +28,7 @@ public class NamenodeResourcesKafka implements Namenode {
 	private String lastid;
 	boolean waiting;
 	boolean error;
+	private List<String> output;
 
 	public NamenodeResourcesKafka() {
 		this.kafka = new KafkaClient(TOPIC);
@@ -49,7 +50,7 @@ public class NamenodeResourcesKafka implements Namenode {
 			error = false;
 			for(ConsumerRecord<String,String> record:records) {
 				try {
-					Thread.sleep(500);
+				
 					String json = record.value();
 					KafkaNamenodeObject o = gson.fromJson(json,KafkaNamenodeObject.class );
 					String type = o.type;
@@ -59,6 +60,10 @@ public class NamenodeResourcesKafka implements Namenode {
 						namenode.delete(o.name);
 					else if(type.equals("update"))
 						namenode.update(o.name, o.metadata);
+					else if(type.equals("read"))
+						output=namenode.read(o.name);
+					else if(type.equals("list"))
+						output=namenode.list(o.name);
 				} 
 				catch(WebApplicationException w) {
 					error=true;
@@ -66,7 +71,7 @@ public class NamenodeResourcesKafka implements Namenode {
 				catch (Exception e) {
 					System.out.println("Erro na thread");
 				}
-				if(record.key().equals(lastid)) 
+				if(record.key().equals(getId())) 
 					done();
 			}
 		}	
@@ -88,7 +93,20 @@ public class NamenodeResourcesKafka implements Namenode {
 
 	@Override
 	synchronized public List<String> list(String prefix) {
-		return namenode.list(prefix);
+		String key = Random.key128();
+		kafka.write(TOPIC, new KafkaNamenodeObject(prefix, null, "list"), key);
+		setId(key);
+		while(waiting) {
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		if(error)
+			throw new WebApplicationException( Status.NOT_FOUND );
+		return output;
 	}
 
 	@Override
@@ -145,6 +163,19 @@ public class NamenodeResourcesKafka implements Namenode {
 
 	@Override
 	synchronized public List<String> read(String name) {
-		return namenode.read(name);
+		String key = Random.key128();
+		kafka.write(TOPIC, new KafkaNamenodeObject(name, null, "read"), key);
+		setId(key);
+		while(waiting) {
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		if(error)
+			throw new WebApplicationException( Status.NOT_FOUND );
+		return output;
 	}
 }
