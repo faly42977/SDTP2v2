@@ -1,30 +1,41 @@
 package sys.storage.rest.namenode;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import java.util.Set;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response.Status;
 
-import org.apache.commons.collections4.Trie;
-import org.apache.commons.collections4.trie.PatriciaTrie;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+
+import com.google.gson.Gson;
 
 import api.storage.Namenode;
+import utils.Random;
 import utils.kafka.KafkaClient;
+import utils.kafka.KafkaNamenodeObject;
 
 public class NamenodeResourcesKafka implements Namenode {
 	private static String TOPIC = "SDT";
 	private static int SLEEP_TIME = 500;
 
 	private KafkaClient kafka;
-	private Queue kafkaQueueReciever;
-	
+	private Queue<String> kafkaQueueReciever;
+	private Gson gson;
+	private NamenodeResources namenode;
+	private String lastid;
+	boolean waiting;
+	boolean error;
+
 	public NamenodeResourcesKafka() {
 		this.kafka = new KafkaClient(TOPIC);
 		kafkaQueueReciever = new LinkedList<String>();
+		gson = new Gson();
+		namenode = new NamenodeResources();
+		waiting = false;
+		error=false;
 		Thread kafkaThread = new Thread(()->{
 			KafkaProcessor();
 		});
@@ -34,56 +45,106 @@ public class NamenodeResourcesKafka implements Namenode {
 
 	public void KafkaProcessor() {
 		while (true) {
-			try {
-				Thread.sleep(500);
-				
-				
-				
-				
-				
-				
-				
-			} catch (Exception e) {
-				System.out.println("Erro na thread");
+			ConsumerRecords<String, String> records = kafka.read();
+			error = false;
+			for(ConsumerRecord<String,String> record:records) {
+				try {
+					Thread.sleep(500);
+					String json = record.value();
+					KafkaNamenodeObject o = gson.fromJson(json,KafkaNamenodeObject.class );
+					String type = o.type;
+					if(type.equals("create"))
+						namenode.create(o.name, o.metadata);
+					else if(type.equals("delete"))
+						namenode.delete(o.name);
+					else if(type.equals("update"))
+						namenode.update(o.name, o.metadata);
+				} 
+				catch(WebApplicationException w) {
+					error=true;
+				}
+				catch (Exception e) {
+					System.out.println("Erro na thread");
+				}
+				if(record.key().equals(lastid)) 
+					done();
 			}
-		}
+		}	
 	}
 
-	private Trie<String, List<String>> names = new PatriciaTrie<>();
+	synchronized private String getId() {
+		return lastid;
+	}
+
+	synchronized private void setId(String id) {
+		lastid = id;
+		waiting = true;
+	}
+
+	synchronized private void done() {
+		waiting = false;
+	}
+
 
 	@Override
 	synchronized public List<String> list(String prefix) {
-		return new ArrayList<>(names.prefixMap( prefix ).keySet());
+		return namenode.list(prefix);
 	}
 
 	@Override
 	synchronized public void create(String name,  List<String> metadata) {
-		if( names.putIfAbsent(name, metadata) != null )
-			throw new WebApplicationException( Status.CONFLICT );	
-		System.err.println( name + "/" + metadata.size() );
+		String key = Random.key128();
+		kafka.write(TOPIC, new KafkaNamenodeObject(name, metadata, "create"), key);
+		setId(key);
+		while(waiting) {
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		if(error)
+			throw new WebApplicationException( Status.CONFLICT );
 	}
 
 	@Override
 	synchronized public void delete(String prefix) {
-		Set<String> keys = names.prefixMap( prefix ).keySet();
-		if( ! keys.isEmpty() )
-			names.keySet().removeAll( new ArrayList<>(keys) );
-		else
+		String key = Random.key128();
+		kafka.write(TOPIC, new KafkaNamenodeObject(prefix,null, "delete"), key);
+		setId(key);
+		while(waiting) {
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		if(error)
 			throw new WebApplicationException( Status.NOT_FOUND );
+
 	}
 
 	@Override
 	synchronized public void update(String name, List<String> metadata) {
-		if( names.putIfAbsent( name, metadata) == null )
+		String key = Random.key128();
+		kafka.write(TOPIC, new KafkaNamenodeObject(name, metadata, "update"), key);
+		setId(key);
+		while(waiting) {
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		if(error)
 			throw new WebApplicationException( Status.NOT_FOUND );
 	}
 
 	@Override
 	synchronized public List<String> read(String name) {
-		List<String> metadata = names.get( name );
-		if( metadata == null )
-			throw new WebApplicationException( Status.NOT_FOUND );
-		else
-			return metadata;
+		return namenode.read(name);
 	}
 }
