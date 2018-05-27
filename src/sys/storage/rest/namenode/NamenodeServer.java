@@ -5,6 +5,8 @@ import static utils.Log.Log;
 import java.net.URI;
 import java.util.logging.Level;
 
+import javax.net.ssl.SSLContext;
+
 import org.glassfish.jersey.jdkhttp.JdkHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 
@@ -24,12 +26,12 @@ public class NamenodeServer {
 		Log.setLevel( Level.FINER );
 
 		String ip = IP.hostAddress();
-		String serverURI = String.format("http://%s:%s/", ip, NAMENODE_PORT);
+		String serverURI = String.format("https://%s:%s/", ip, NAMENODE_PORT);
 		
 		ResourceConfig config = new ResourceConfig();
 		config.register( new NamenodeResources() );
 		
-		JdkHttpServerFactory.createHttpServer( URI.create(serverURI.replace(ip, "0.0.0.0")), config);
+		JdkHttpServerFactory.createHttpServer(URI.create(serverURI), config ,SSLContext.getDefault());
 
 		Log.fine(String.format("Namenode Server ready @ %s%s\n",  serverURI, Namenode.PATH.substring(1)));
 		

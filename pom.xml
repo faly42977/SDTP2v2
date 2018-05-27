@@ -66,12 +66,12 @@
 
 								<!-- TLS ADD -->
 
-								<!-- <resource> -->
-								<!-- <targetPath>/home/sd</targetPath> -->
-								<!-- <directory>${basedir}/tls</directory> -->
-								<!-- <include>*.jks</include> -->
-								<!-- </resource> -->
-								
+								<resource>
+									<targetPath>/home/sd</targetPath>
+									<directory>${basedir}/tls</directory>
+									<include>*.jks</include>
+								</resource>
+
 								<resource>
 									<targetPath>/</targetPath>
 									<directory>.</directory>
@@ -132,6 +132,24 @@
 			<groupId>org.glassfish.jersey.media</groupId>
 			<artifactId>jersey-media-json-jackson</artifactId>
 		</dependency>
+		<!-- ADDED -->
+		<dependency>
+			<groupId>org.apache.kafka</groupId>
+			<artifactId>kafka-clients</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.kafka</groupId>
+			<artifactId>kafka_2.11</artifactId>
+			<version>1.1.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+		</dependency>
+
+		<!-- ADDED -->
+
 		<dependency>
 			<groupId>org.apache.zookeeper</groupId>
 			<artifactId>zookeeper</artifactId>
@@ -193,6 +211,13 @@
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
+			<!-- ADDDED -->
+			<dependency>
+				<groupId>com.typesafe.scala-logging</groupId>
+				<artifactId>scala-logging_2.11</artifactId>
+				<version>3.8.0</version>
+			</dependency>
+			<!-- ADDDED -->
 			<dependency>
 				<groupId>org.glassfish.jersey.core</groupId>
 				<artifactId>jersey-client</artifactId>

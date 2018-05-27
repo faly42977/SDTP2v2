@@ -20,7 +20,7 @@ import utils.Random;
 public class SoapMapReduceWorker implements MapReduceWorker {
 
 	private static final int MAPREDUCE_WORKER_PORT = 6666;
-	private static String BASE_URI = String.format("http://0.0.0.0:%d%s", MAPREDUCE_WORKER_PORT, MapReduceWorker.PATH);
+	private static String BASE_URI = String.format("https://0.0.0.0:%d%s", MAPREDUCE_WORKER_PORT, MapReduceWorker.PATH);
 
 	final String workerId;
 	final BlobStorage storage;
@@ -30,6 +30,8 @@ public class SoapMapReduceWorker implements MapReduceWorker {
 		this.workerId = Random.key64();
 		this.storage = new RestBlobStorage();
 		Endpoint.publish(BASE_URI, this);
+		 System.setProperty("javax.net.ssl.trustStore", "/home/sd/client.jks");
+	     System.setProperty("javax.net.ssl.trustStorePassword", "123456");
 		Discover.me(MapReduceWorker.NAME, BASE_URI.replace("0.0.0.0", IP.hostAddress()));
 	}
 	

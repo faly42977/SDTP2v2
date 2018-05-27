@@ -12,20 +12,20 @@ blobstorage-class=sys.storage.rest.RestBlobStorage
 
 discovery-multicast-address=226.226.226.226:3333
 
-namenode-keystore=/home/sd/namenode.jks
-namenode-keystore-password=namenode
-namenode-truststore=/home/sd/namenode-ts.jks
-namenode-truststore-password=namenode-ts
+namenode-keystore=/home/sd/server.jks
+namenode-keystore-password=123456
+namenode-truststore=/home/sd/client.jks
+namenode-truststore-password=123456
 
-datanode-keystore=/home/sd/datanode.jks
-datanode-keystore-password=datanode
-datanode-truststore=/home/sd/datanode-ts.jks
-datanode-truststore-password=datanode-ts
+datanode-keystore=/home/sd/server.jks
+datanode-keystore-password=123456
+datanode-truststore=/home/sd/client.jks
+datanode-truststore-password=123456
 
-blobstorage-keystore=/home/sd/blobstorage.jks
-blobstorage-keystore-password=blobstorage
-blobstorage-truststore=/home/sd/blobstorage-ts.jks
-blobstorage-truststore-password=blobstorage-ts
+blobstorage-keystore=/home/sd/server.jks
+blobstorage-keystore-password=123456
+blobstorage-truststore=/home/sd/client.jks
+blobstorage-truststore-password=123456
 
 dropbox-app-key=3798wk62thvohz1
 dropbox-app-secret=6kjgm89e1j9vnn0

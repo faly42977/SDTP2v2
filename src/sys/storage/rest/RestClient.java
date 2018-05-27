@@ -3,6 +3,8 @@ package sys.storage.rest;
 import java.net.URI;
 import java.util.function.Supplier;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLSession;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -27,12 +29,20 @@ abstract class RestClient {
 	protected final WebTarget target;
 	protected final ClientConfig config;
 	
+	public class InsecureHostnameVerifier implements HostnameVerifier {
+	    @Override
+	    public boolean verify(String hostname, SSLSession session) {
+	    	System.out.println(session.isValid());
+	        return true;
+	    }
+	}
+	
 	public RestClient(URI uri, String path ) {
 		this.uri = uri;
 		this.config = new ClientConfig();
 		this.config.property(ClientProperties.CONNECT_TIMEOUT, CONNECT_TIMEOUT);
 		this.config.property(ClientProperties.READ_TIMEOUT, READ_TIMEOUT);		
-		this.client = ClientBuilder.newClient(config);
+		this.client = ClientBuilder.newBuilder().hostnameVerifier(new InsecureHostnameVerifier()).build();
 		this.target = this.client.target(uri).path( path );
 	}
 	

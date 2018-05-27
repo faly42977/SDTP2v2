@@ -5,6 +5,8 @@ import static utils.Log.Log;
 import java.net.URI;
 import java.util.logging.Level;
 
+import javax.net.ssl.SSLContext;
+
 import org.glassfish.jersey.jdkhttp.JdkHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 
@@ -18,7 +20,7 @@ public class DropboxDatanodeServer {
 	public static final int DATANODE_PORT = 9999;
 	public static final String DATANODE = "Datanode";
 	
-	private static final String PROPS_FILENAME = "/props/sd2018-tp1.props";
+	private static final String PROPS_FILENAME = "/props/sd2018-tp2.props";
 	private static final String MAPREDUCE_WORKER_PROP = "mapreduce-worker";
 
 	
@@ -28,13 +30,13 @@ public class DropboxDatanodeServer {
 		Log.setLevel(Level.FINER);
 
 		String ip = IP.hostAddress();
-		String serverURI = String.format("http://%s:%s/", ip, DATANODE_PORT);
+		String serverURI = String.format("https://%s:%s/", ip, DATANODE_PORT);
 
 		ResourceConfig config = new ResourceConfig();
 		//config.register(new DatanodeResources(serverURI));
 		config.register(new DatanodeProxy(serverURI));
 
-		JdkHttpServerFactory.createHttpServer(URI.create(serverURI.replace(ip, "0.0.0.0")), config);
+		JdkHttpServerFactory.createHttpServer(URI.create(serverURI.replace(ip, "0.0.0.0")), config, SSLContext.getDefault());
 
 		System.err.printf("Datanode Server ready @ %s%s\n", serverURI, Datanode.PATH.substring(1));
 
