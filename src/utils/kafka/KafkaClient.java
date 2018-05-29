@@ -1,8 +1,11 @@
 package utils.kafka;
 import java.util.Arrays;
 import java.util.Properties;
+import java.util.Random;
+
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.ZkConnection;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -18,9 +21,9 @@ import kafka.utils.ZkUtils;
 
 public class KafkaClient {
 
-	private static final int SESSION_TIMEOUT = 5000;
+	private static final int SESSION_TIMEOUT = 500;
 	private static final int CONNECTION_TIMEOUT = 1000;
-	private static final String ZOOKEEPER_SERVER = "172.20.0.1:2181";
+	private static final String ZOOKEEPER_SERVER = "zoo1:2181";
 	private static final int REPLICATION_FACTOR = 1;
 	ZkUtils zkUtils ;
 	Properties props;
@@ -29,8 +32,10 @@ public class KafkaClient {
 	Gson json;
 
 	public KafkaClient(String topic) {
+		props = new Properties();
+		
 		//Localização dos servidores kafka (lista de máquinas + porto)
-		props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "172.20.0.1:9092");
+		props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka1:9092");
 
 		// Classe para serializar as chaves dos eventos (string)
 		props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
@@ -40,6 +45,15 @@ public class KafkaClient {
 		
 		props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
 		
+		//Configura o modo de subscrição (ver documentação em kafka.apache.org)
+		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+		props.put(ConsumerConfig.GROUP_ID_CONFIG, "grp" +  new Random().nextLong());
+		// Classe para serializar as chaves dos eventos (string)
+		props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
+		// Classe para serializar os valores dos eventos (string)
+		props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
+		
+		
 		this.json = new Gson();
 		
 		ZkClient zkClient = new ZkClient(
@@ -48,6 +62,8 @@ public class KafkaClient {
 				CONNECTION_TIMEOUT,
 				ZKStringSerializer$.MODULE$);
 		Properties topicConfig = new Properties();
+		
+		zkUtils = new ZkUtils(zkClient, new ZkConnection(ZOOKEEPER_SERVER), false);
 
 		
 			try {

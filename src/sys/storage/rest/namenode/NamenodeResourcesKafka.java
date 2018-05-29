@@ -3,6 +3,7 @@ package sys.storage.rest.namenode;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response.Status;
@@ -26,7 +27,7 @@ public class NamenodeResourcesKafka implements Namenode {
 	private Gson gson;
 	private NamenodeResources namenode;
 	volatile private String lastid;
-	volatile boolean waiting;
+	volatile AtomicBoolean waiting;
 	boolean error;
 	private List<String> output;
 
@@ -34,7 +35,7 @@ public class NamenodeResourcesKafka implements Namenode {
 		this.kafka = new KafkaClient(TOPIC);
 		gson = new Gson();
 		namenode = new NamenodeResources();
-		waiting = false;
+		waiting = new AtomicBoolean(false);
 		error=false;
 		Thread kafkaThread = new Thread(()->{
 			KafkaProcessor();
@@ -63,6 +64,9 @@ public class NamenodeResourcesKafka implements Namenode {
 						output=namenode.read(o.name);
 					else if(type.equals("list"))
 						output=namenode.list(o.name);
+					else {
+						System.out.println("recebi outra:" + type);
+					}
 				} 
 				catch(WebApplicationException w) {
 					error=true;
@@ -76,17 +80,17 @@ public class NamenodeResourcesKafka implements Namenode {
 		}	
 	}
 
-	synchronized private String getId() {
+	private String getId() {
 		return lastid;
 	}
 
-	synchronized private void setId(String id) {
+	private void setId(String id) {
 		lastid = id;
-		waiting = true;
+		waiting.set(true);
 	}
 
-	synchronized private void done() {
-		waiting = false;
+	private void done() {
+		waiting.set(false);
 	}
 
 
@@ -95,7 +99,9 @@ public class NamenodeResourcesKafka implements Namenode {
 		String key = Random.key128();
 		kafka.write(TOPIC, new KafkaNamenodeObject(prefix, null, "list"), key);
 		setId(key);
-		while(waiting) {
+		System.out.println("Sending OP: list "+ key);
+		while(waiting.get()) {
+			System.out.println("Enter Wait list" + waiting.get());
 			try {
 				Thread.sleep(10);
 			} catch (InterruptedException e) {
@@ -103,6 +109,7 @@ public class NamenodeResourcesKafka implements Namenode {
 				e.printStackTrace();
 			}
 		}
+		System.out.println("Exit Wait list");
 		if(error)
 			throw new WebApplicationException( Status.NOT_FOUND );
 		return output;
@@ -113,7 +120,9 @@ public class NamenodeResourcesKafka implements Namenode {
 		String key = Random.key128();
 		kafka.write(TOPIC, new KafkaNamenodeObject(name, metadata, "create"), key);
 		setId(key);
-		while(waiting) {
+		System.out.println("Sending OP: create "+ key);
+		while(waiting.get()) {
+			System.out.println("Enter Wait create" + waiting.get());
 			try {
 				Thread.sleep(10);
 			} catch (InterruptedException e) {
@@ -121,6 +130,7 @@ public class NamenodeResourcesKafka implements Namenode {
 				e.printStackTrace();
 			}
 		}
+		System.out.println("Exit Wait create");
 		if(error)
 			throw new WebApplicationException( Status.CONFLICT );
 	}
@@ -130,7 +140,9 @@ public class NamenodeResourcesKafka implements Namenode {
 		String key = Random.key128();
 		kafka.write(TOPIC, new KafkaNamenodeObject(prefix,null, "delete"), key);
 		setId(key);
-		while(waiting) {
+		System.out.println("Sending OP: delete "+ key);
+		while(waiting.get()) {
+			System.out.println("Enter Wait delete" + waiting.get());
 			try {
 				Thread.sleep(10);
 			} catch (InterruptedException e) {
@@ -138,6 +150,7 @@ public class NamenodeResourcesKafka implements Namenode {
 				e.printStackTrace();
 			}
 		}
+		System.out.println("Exit Wait delete");
 		if(error)
 			throw new WebApplicationException( Status.NOT_FOUND );
 
@@ -148,7 +161,9 @@ public class NamenodeResourcesKafka implements Namenode {
 		String key = Random.key128();
 		kafka.write(TOPIC, new KafkaNamenodeObject(name, metadata, "update"), key);
 		setId(key);
-		while(waiting) {
+		System.out.println("Sending OP: update "+ key);
+		while(waiting.get()) {
+			System.out.println("Enter Wait update" + waiting.get());
 			try {
 				Thread.sleep(10);
 			} catch (InterruptedException e) {
@@ -156,6 +171,7 @@ public class NamenodeResourcesKafka implements Namenode {
 				e.printStackTrace();
 			}
 		}
+		System.out.println("Exit Wait update");
 		if(error)
 			throw new WebApplicationException( Status.NOT_FOUND );
 	}
@@ -165,8 +181,10 @@ public class NamenodeResourcesKafka implements Namenode {
 		String key = Random.key128();
 		kafka.write(TOPIC, new KafkaNamenodeObject(name, null, "read"), key);
 		setId(key);
+		System.out.println("Sending OP: read "+ key);
 		System.out.println("Setting ID:" + key);
-		while(waiting) {
+		while(waiting.get()) {
+			System.out.println("Enter Wait read" + waiting.get());
 			try {
 				Thread.sleep(10);
 			} catch (InterruptedException e) {
@@ -174,6 +192,7 @@ public class NamenodeResourcesKafka implements Namenode {
 				e.printStackTrace();
 			}
 		}
+		System.out.println("Exit Wait read" + waiting.get());
 		if(error)
 			throw new WebApplicationException( Status.NOT_FOUND );
 		return output;
