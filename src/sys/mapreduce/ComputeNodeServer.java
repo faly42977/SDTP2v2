@@ -12,7 +12,7 @@ import utils.Props;
 @WebService(serviceName = ComputeNode.NAME, targetNamespace = ComputeNode.NAMESPACE, endpointInterface = ComputeNode.INTERFACE)
 public class ComputeNodeServer implements ComputeNode {
 
-	private static String PROPS_FILENAME = "/props/sd2018-tp1.props";
+	private static String PROPS_FILENAME = "/props/sd2018-tp2.props";
 	private static String MAPREDUCE_ENGINE_PROP = "mapreduce-engine";
 
 	private static final int COMPUTENODE_PORT = 6666;

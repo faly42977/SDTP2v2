@@ -76,6 +76,11 @@ public class NamenodeResourcesKafka implements Namenode {
 				}
 				if(record.key().equals(getId())) 
 					done();
+				
+				else {
+					System.out.println("KEYS DIFERENTES!; record.key:" + record.key() + "; getId()" + getId());
+					//waiting.set(true);
+				}
 			}
 		}	
 	}
@@ -95,13 +100,14 @@ public class NamenodeResourcesKafka implements Namenode {
 
 
 	@Override
-	synchronized public List<String> list(String prefix) {
+	 synchronized public List<String> list(String prefix) {
 		String key = Random.key128();
-		kafka.write(TOPIC, new KafkaNamenodeObject(prefix, null, "list"), key);
 		setId(key);
+		kafka.write(TOPIC, new KafkaNamenodeObject(prefix, null, "list"), key);
+		
 		System.out.println("Sending OP: list "+ key);
 		while(waiting.get()) {
-			System.out.println("Enter Wait list" + waiting.get());
+			System.out.println("Enter Wait list"  + waiting.get() +" KEY:" + key + " ID:" + getId());
 			try {
 				Thread.sleep(10);
 			} catch (InterruptedException e) {
@@ -116,13 +122,14 @@ public class NamenodeResourcesKafka implements Namenode {
 	}
 
 	@Override
-	synchronized public void create(String name,  List<String> metadata) {
+	synchronized  public void create(String name,  List<String> metadata) {
 		String key = Random.key128();
-		kafka.write(TOPIC, new KafkaNamenodeObject(name, metadata, "create"), key);
 		setId(key);
+		kafka.write(TOPIC, new KafkaNamenodeObject(name, metadata, "create"), key);
+		
 		System.out.println("Sending OP: create "+ key);
 		while(waiting.get()) {
-			System.out.println("Enter Wait create" + waiting.get());
+			System.out.println("Enter Wait create"  + waiting.get() +" KEY:" + key + " ID:" + getId());
 			try {
 				Thread.sleep(10);
 			} catch (InterruptedException e) {
@@ -138,11 +145,12 @@ public class NamenodeResourcesKafka implements Namenode {
 	@Override
 	synchronized public void delete(String prefix) {
 		String key = Random.key128();
-		kafka.write(TOPIC, new KafkaNamenodeObject(prefix,null, "delete"), key);
 		setId(key);
+		kafka.write(TOPIC, new KafkaNamenodeObject(prefix,null, "delete"), key);
+		
 		System.out.println("Sending OP: delete "+ key);
 		while(waiting.get()) {
-			System.out.println("Enter Wait delete" + waiting.get());
+			System.out.println("Enter Wait delete"  + waiting.get() +" KEY:" + key + " ID:" + getId());
 			try {
 				Thread.sleep(10);
 			} catch (InterruptedException e) {
@@ -159,11 +167,12 @@ public class NamenodeResourcesKafka implements Namenode {
 	@Override
 	synchronized public void update(String name, List<String> metadata) {
 		String key = Random.key128();
-		kafka.write(TOPIC, new KafkaNamenodeObject(name, metadata, "update"), key);
 		setId(key);
+		kafka.write(TOPIC, new KafkaNamenodeObject(name, metadata, "update"), key);
+		
 		System.out.println("Sending OP: update "+ key);
 		while(waiting.get()) {
-			System.out.println("Enter Wait update" + waiting.get());
+			System.out.println("Enter Wait update"  + waiting.get() +" KEY:" + key + " ID:" + getId());
 			try {
 				Thread.sleep(10);
 			} catch (InterruptedException e) {
@@ -179,12 +188,13 @@ public class NamenodeResourcesKafka implements Namenode {
 	@Override
 	synchronized public List<String> read(String name) {
 		String key = Random.key128();
-		kafka.write(TOPIC, new KafkaNamenodeObject(name, null, "read"), key);
 		setId(key);
+		kafka.write(TOPIC, new KafkaNamenodeObject(name, null, "read"), key);
+		
 		System.out.println("Sending OP: read "+ key);
 		System.out.println("Setting ID:" + key);
 		while(waiting.get()) {
-			System.out.println("Enter Wait read" + waiting.get());
+			System.out.println("Enter Wait read"  + waiting.get() +" KEY:" + key + " ID:" + getId());
 			try {
 				Thread.sleep(10);
 			} catch (InterruptedException e) {
@@ -192,7 +202,7 @@ public class NamenodeResourcesKafka implements Namenode {
 				e.printStackTrace();
 			}
 		}
-		System.out.println("Exit Wait read" + waiting.get());
+		System.out.println("Exit Wait read"  + waiting.get() +" KEY:" + key + " ID:" + getId());
 		if(error)
 			throw new WebApplicationException( Status.NOT_FOUND );
 		return output;
