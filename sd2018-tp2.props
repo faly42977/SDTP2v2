@@ -33,5 +33,6 @@ dropbox-access-token=_OX6R4XogdAAAAAAAAAAMMgVtppFSGpqdtec7SRkDYMBaEG99UapvbS2ISU
 dropbox-datanode-folder=/Datanode
 dropbox-datanode-server-mainclass=sys.storage.rest.datanode.DropboxDatanodeServer
 
+mapreduce-worker=sys.mapreduce.centralized.CentralizedMapReduceEngine
 
 dropbox-datanode-server-port=9999

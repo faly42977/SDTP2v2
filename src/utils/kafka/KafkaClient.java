@@ -30,7 +30,7 @@ public class KafkaClient {
 
 	public KafkaClient(String topic) {
 		//Localização dos servidores kafka (lista de máquinas + porto)
-		props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+		props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "172.20.0.1:9092");
 
 		// Classe para serializar as chaves dos eventos (string)
 		props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");

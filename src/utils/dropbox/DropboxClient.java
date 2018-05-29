@@ -14,42 +14,6 @@ import com.github.scribejava.core.oauth.OAuth20Service;
 import utils.JSON;
 
 public class DropboxClient{
-
-	private static class Data {
-		public String path;
-
-		public Data(String path) {
-			this.path=path;
-		}
-	}
-	
-	private static class Folder {
-		public String path;
-		boolean autorename;
-		public Folder(String path) {
-			this.path=path; 
-			this.autorename=false;
-		}
-	}
-	
-	public static class CreateFile {
-		final String path;
-		final String mode;
-		final boolean autorename;
-		final boolean mute;
-		
-		public CreateFile(String path) {
-			this.path = path;
-			this.mode = "add";
-			this.autorename = false;
-			this.mute = false;
-		}
-		
-	}
-
-
-
-
 	private static final String CREATE_FILE_V2_URL = "https://content.dropboxapi.com/2/files/upload";
 	private static final String DELETE_V2_URL = "https://api.dropboxapi.com/2/files/delete_v2";
 	private static final String CREATE_DIR_V2_URL = "https://api.dropboxapi.com/2/files/create_folder";
@@ -67,7 +31,7 @@ public class DropboxClient{
 	static final String token = "_OX6R4XogdAAAAAAAAAAMMgVtppFSGpqdtec7SRkDYMBaEG99UapvbS2ISUqTksx";
 	static OAuth2AccessToken  accessToken = new OAuth2AccessToken(token);
 
-	public static boolean createFile(String path,byte[] contents) {
+	public synchronized static boolean createFile(String path,byte[] contents) {
 		OAuthRequest createFile = new OAuthRequest(Verb.POST, CREATE_FILE_V2_URL);
 		createFile.addHeader("Content-Type", OCTETSTREAM_CONTENT_TYPE);
 		createFile.addHeader(DROPBOX_API_ARG, JSON.encode(new CreateFile(path)));
@@ -93,14 +57,14 @@ public class DropboxClient{
 		return false;
 	}
 
-	public static boolean delete(String path) {
+	public synchronized static boolean delete(String path) {
 		OAuthRequest delete = new OAuthRequest(Verb.POST, DELETE_V2_URL);
 		delete.addHeader("Content-Type", JSON_CONTENT_TYPE);
 		//deleteFile.addHeader(DROPBOX_API_ARG, JSON.encode(new Delete(path)));
 		//deleteFile.addHeader("Authorization","Bearer "+token);
-				
+
 		service.signRequest(accessToken, delete);	
-		
+
 		delete.setPayload( JSON.encode(new Data(path)) );
 		Response r;
 		try {
@@ -119,13 +83,13 @@ public class DropboxClient{
 		}
 		return false;
 	}
-	
-	public static boolean createDir(String path){
+
+	public synchronized static boolean createDir(String path){
 		OAuthRequest createDir = new OAuthRequest(Verb.POST, CREATE_DIR_V2_URL);
 		createDir.addHeader("Content-Type", JSON_CONTENT_TYPE);
-		
+
 		service.signRequest(accessToken, createDir);
-		
+
 		createDir.setPayload( JSON.encode(new Folder(path)) );
 		Response r;
 		try {
@@ -144,8 +108,8 @@ public class DropboxClient{
 		}
 		return false;
 	}
-	
-	public static byte[] getFile(String path) {
+
+	public synchronized static byte[] getFile(String path) {
 		OAuthRequest getFile = new OAuthRequest(Verb.POST, GET_FILE_V2_URL);
 		getFile.addHeader("Content-Type", OCTETSTREAM_CONTENT_TYPE);
 		getFile.addHeader(DROPBOX_API_ARG, JSON.encode(new Data(path)));
@@ -167,6 +131,37 @@ public class DropboxClient{
 
 		}
 		return null;
+	}
+
+	private static class Data {
+		public String path;
+
+		public Data(String path) {
+			this.path=path;
+		}
+	}
+
+	private static class Folder {
+		public String path;
+		boolean autorename;
+		public Folder(String path) {
+			this.path=path; 
+			this.autorename=false;
+		}
+	}
+
+	public static class CreateFile {
+		final String path;
+		final String mode;
+		final boolean autorename;
+		final boolean mute;
+
+		public CreateFile(String path) {
+			this.path = path;
+			this.mode = "add";
+			this.autorename = false;
+			this.mute = false;
+		}
 	}
 }
 
