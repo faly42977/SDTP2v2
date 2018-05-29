@@ -20,7 +20,7 @@ public class KafkaClient {
 
 	private static final int SESSION_TIMEOUT = 5000;
 	private static final int CONNECTION_TIMEOUT = 1000;
-	private static final String ZOOKEEPER_SERVER = "localhost:2181";
+	private static final String ZOOKEEPER_SERVER = "172.20.0.1:2181";
 	private static final int REPLICATION_FACTOR = 1;
 	ZkUtils zkUtils ;
 	Properties props;

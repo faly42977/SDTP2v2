@@ -22,17 +22,16 @@ public class NamenodeResourcesKafka implements Namenode {
 	private static int SLEEP_TIME = 10;
 
 	private KafkaClient kafka;
-	private Queue<String> kafkaQueueReciever;
+
 	private Gson gson;
 	private NamenodeResources namenode;
-	private String lastid;
-	boolean waiting;
+	volatile private String lastid;
+	volatile boolean waiting;
 	boolean error;
 	private List<String> output;
 
 	public NamenodeResourcesKafka() {
 		this.kafka = new KafkaClient(TOPIC);
-		kafkaQueueReciever = new LinkedList<String>();
 		gson = new Gson();
 		namenode = new NamenodeResources();
 		waiting = false;
@@ -50,7 +49,7 @@ public class NamenodeResourcesKafka implements Namenode {
 			error = false;
 			for(ConsumerRecord<String,String> record:records) {
 				try {
-				
+					System.out.println("RECEIVED RECORD: ID=" + record.key());
 					String json = record.value();
 					KafkaNamenodeObject o = gson.fromJson(json,KafkaNamenodeObject.class );
 					String type = o.type;
@@ -166,6 +165,7 @@ public class NamenodeResourcesKafka implements Namenode {
 		String key = Random.key128();
 		kafka.write(TOPIC, new KafkaNamenodeObject(name, null, "read"), key);
 		setId(key);
+		System.out.println("Setting ID:" + key);
 		while(waiting) {
 			try {
 				Thread.sleep(10);

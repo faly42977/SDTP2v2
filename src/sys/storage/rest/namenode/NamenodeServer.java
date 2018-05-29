@@ -29,7 +29,7 @@ public class NamenodeServer {
 		String serverURI = String.format("https://%s:%s/", ip, NAMENODE_PORT);
 		
 		ResourceConfig config = new ResourceConfig();
-		config.register( new NamenodeResources() );
+		config.register( new NamenodeResourcesKafka() );
 		
 		JdkHttpServerFactory.createHttpServer(URI.create(serverURI), config ,SSLContext.getDefault());
 
