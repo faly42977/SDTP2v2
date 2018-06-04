@@ -12,17 +12,17 @@ blobstorage-class=sys.storage.rest.RestBlobStorage
 
 discovery-multicast-address=226.226.226.226:3333
 
-namenode-keystore=/home/sd/server.jks
+namenode-keystore=/home/sd/server_namenode.jks
 namenode-keystore-password=123456
 namenode-truststore=/home/sd/client.jks
 namenode-truststore-password=123456
 
-datanode-keystore=/home/sd/server.jks
+datanode-keystore=/home/sd/server_datanode.jks
 datanode-keystore-password=123456
 datanode-truststore=/home/sd/client.jks
 datanode-truststore-password=123456
 
-blobstorage-keystore=/home/sd/server.jks
+blobstorage-keystore=/home/sd/server_blob.jks
 blobstorage-keystore-password=123456
 blobstorage-truststore=/home/sd/client.jks
 blobstorage-truststore-password=123456
