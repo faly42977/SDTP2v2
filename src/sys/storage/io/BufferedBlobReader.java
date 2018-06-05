@@ -22,30 +22,31 @@ public class BufferedBlobReader implements BlobReader {
 	final String name;
 	final Namenode namenode; 
 	final Datanode datanode;
-	
-	final Iterator<String> blocks;
 
+	final Iterator<String> blocks;
+	public BackupManager backups;
 	final LazyBlockReader lazyBlockIterator;
-	
-	public BufferedBlobReader( String name, Namenode namenode, Datanode datanode ) {
+
+	public BufferedBlobReader( String name, Namenode namenode, Datanode datanode, BackupManager backups ) {
 		this.name = name;
 		this.namenode = namenode;
 		this.datanode = datanode;
-		
+		this.backups  = backups;
 		this.blocks = this.namenode.read( name ).iterator();
 		this.lazyBlockIterator = new LazyBlockReader();
+		this.backups = backups;
 	}
-	
+
 	@Override
 	public String readLine() {
 		return lazyBlockIterator.hasNext() ? lazyBlockIterator.next() : null ;
 	}
-	
+
 	@Override
 	public Iterator<String> iterator() {
 		return lazyBlockIterator;
 	}
-	
+
 	private Iterator<String> nextBlockLines() {
 		if( blocks.hasNext() )
 			return fetchBlockLines( blocks.next() ).iterator();
@@ -54,18 +55,35 @@ public class BufferedBlobReader implements BlobReader {
 	} 
 
 	private List<String> fetchBlockLines(String block) {
-		byte[] data = datanode.readBlock( block );
-		return Arrays.asList( new String(data).split("\\R"));
+		try {
+			byte[] data = datanode.readBlock( block );
+			Integer hash = Arrays.hashCode(data);
+
+			System.out.println("Working for hash: " + hash);
+
+			if (backups.getHash(block) != null) 
+				return Arrays.asList( new String( backups.getBackup(block) ).split("\\R"));
+
+			else 
+				return Arrays.asList(new String("CORRUPTED BLOCK"));
+
+
+		} catch (Exception e) {
+			System.out.println("Error on fetchBlockLines");
+			e.printStackTrace();
+
+		}
+		return null;
 	}
-	
+
 	private class LazyBlockReader implements Iterator<String> {
-		
+
 		Iterator<String> lines;
-		
+
 		LazyBlockReader() {
 			this.lines = nextBlockLines();
 		}
-		
+
 		@Override
 		public String next() {
 			return lines.next();

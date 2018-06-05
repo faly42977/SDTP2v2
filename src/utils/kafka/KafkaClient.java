@@ -21,9 +21,9 @@ import kafka.utils.ZkUtils;
 
 public class KafkaClient {
 
-	private static final int SESSION_TIMEOUT = 500;
-	private static final int CONNECTION_TIMEOUT = 1000;
-	private static final String ZOOKEEPER_SERVER = "zoo1:2181";
+	private static final int SESSION_TIMEOUT = 2000;
+	private static final int CONNECTION_TIMEOUT = 2000;
+	private static final String ZOOKEEPER_SERVER = "zoo1:2181,zoo2:2181,zoo3:2181";
 	private static final int REPLICATION_FACTOR = 1;
 	ZkUtils zkUtils ;
 	Properties props;
@@ -35,7 +35,7 @@ public class KafkaClient {
 		props = new Properties();
 		
 		//Localização dos servidores kafka (lista de máquinas + porto)
-		props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka1:9092");
+		props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka1:9092,kafka2:9092,kafka3:9092");
 
 		// Classe para serializar as chaves dos eventos (string)
 		props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");

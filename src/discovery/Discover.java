@@ -68,7 +68,7 @@ public class Discover {
 						ds.receive(reply);
 						String uri = new String(reply.getData(), 0, reply.getLength());
 
-						Log.finest(String.format("Discovered [%s] at: %s", query, uri));
+						//Log.finest(String.format("Discovered [%s] at: %s", query, uri));
 						results.add( URI.create( uri ));
 					}
 				} catch (SocketTimeoutException e) {
@@ -78,8 +78,8 @@ public class Discover {
 			e.printStackTrace();
 		}
 		
-		if( results.isEmpty() )
-			Log.finest(String.format("No discoveries after timeout [%s ms]", DISCOVERY_TIMEOUT));
+//		if( results.isEmpty() )
+//			Log.finest(String.format("No discoveries after timeout [%s ms]", DISCOVERY_TIMEOUT));
 		
 		return results ;
 	}
