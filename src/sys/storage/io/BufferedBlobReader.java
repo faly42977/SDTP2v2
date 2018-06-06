@@ -57,11 +57,11 @@ public class BufferedBlobReader implements BlobReader {
 	private List<String> fetchBlockLines(String block) {
 		try {
 			byte[] data = datanode.readBlock( block );
-			Integer hash = Arrays.hashCode(data);
+			byte[] hash = backups.genHash(data);
 
 			System.out.println("Working for hash: " + hash);
 
-			if (backups.getHash(block) != null) 
+			if (Arrays.equals(backups.getHash(block),hash)) 
 				return Arrays.asList( new String( backups.getBackup(block) ).split("\\R"));
 
 			else 
