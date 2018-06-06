@@ -1,13 +1,14 @@
 package sys.mapreduce;
 
-import static utils.Log.Log;
-
 import java.net.InetSocketAddress;
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import javax.jws.WebService;
 import javax.net.ssl.KeyManagerFactory;
@@ -23,52 +24,60 @@ import com.sun.net.httpserver.HttpsParameters;
 import com.sun.net.httpserver.HttpsServer;
 
 import api.mapreduce.ComputeNode;
-import sys.mapreduce.centralized.CentralizedMapReduceEngine;
-import sys.mapreduce.distributed.soap.v1.SoapMapReduceEngine;
+import api.storage.BlobStorage;
+import api.storage.BlobStorage.BlobWriter;
 import utils.JKS;
-import utils.Props;
+import jersey.repackaged.com.google.common.collect.Lists;
+import sys.storage.rest.RestBlobStorage;
 
+@SuppressWarnings("restriction")
 @WebService(serviceName = ComputeNode.NAME, targetNamespace = ComputeNode.NAMESPACE, endpointInterface = ComputeNode.INTERFACE)
-public class ComputeNodeServer implements ComputeNode {
+public class ComputeNodeImpl implements ComputeNode {
 	
-	private static final String SERVER_KEYSTORE = "/home/sd/server_blob.jks";
+	private static final String SERVER_KEYSTORE = "home/sd/server_blob.jks";
 	private static final String SERVER_KEYSTORE_PWD = "123456";
 
-	private static final String SERVER_TRUSTSTORE = "/home/sd/client.jks";
+	private static final String SERVER_TRUSTSTORE = "home/sd/client.jks";
 	private static final String SERVER_TRUSTSTORE_PWD = "123456";
-
 	
-	
-	private static String PROPS_FILENAME = "/props/sd2018-tp2.props";
-	private static String MAPREDUCE_ENGINE_PROP = "mapreduce-engine";
+	private String worker;
+	private BlobStorage storage;
 
-	private static final int COMPUTENODE_PORT = 6666;
-	private static String baseURI = String.format("https://0.0.0.0:%d%s", COMPUTENODE_PORT, ComputeNode.PATH);
-
-	final MapReduceEngine engine;
-
-	protected ComputeNodeServer(MapReduceEngine engine) {
-		this.engine = engine;
+	public ComputeNodeImpl(String worker, BlobStorage storage) {
+		this.worker = worker;
+		this.storage = storage;
 	}
 
 	@Override
-	public void mapReduce(String jobClassBlob, String inputPrefix, String outputPrefix, int outputPartitionsSize ) throws InvalidArgumentException {
-		try {
-			if( jobClassBlob == null || inputPrefix == null || outputPrefix == null || outputPartitionsSize <= 0 )
-				throw new InvalidArgumentException("");
+	public void mapReduce(String jobClassBlob, String inputPrefix, String outputPrefix, int outPartSize)
+			throws InvalidArgumentException {
+		//Test received parameters
+		if(jobClassBlob == null || inputPrefix == null || outputPrefix == null)
+			throw new InvalidArgumentException();
+		
+		new MapperTask(worker, storage, jobClassBlob, inputPrefix, outputPrefix).execute();
 
-			System.err.println("Executing:" + jobClassBlob);
-			engine.executeJob(jobClassBlob, inputPrefix, outputPrefix, outputPartitionsSize);
-			System.err.println("Done:" + jobClassBlob);
+		Set<String> reduceKeyPrefixes = storage.listBlobs(outputPrefix + "-map-").stream()
+				.map(blob -> blob.substring(0, blob.lastIndexOf('-'))).collect(Collectors.toSet());
 
-		} catch (Exception x) {
-			x.printStackTrace();
-		}
+		AtomicInteger partitionCounter = new AtomicInteger(0);
+		Lists.partition(new ArrayList<>(reduceKeyPrefixes), outPartSize).forEach(partitionKeyList -> {
+
+			String partitionOutputBlob = String.format("%s-part%04d", outputPrefix, partitionCounter.incrementAndGet());
+
+			BlobWriter writer = storage.blobWriter(partitionOutputBlob);
+
+			partitionKeyList.forEach(keyPrefix -> {
+				new ReducerTask("client", storage, jobClassBlob, keyPrefix, outputPrefix).execute(writer);
+			});
+
+			writer.close();
+		});
 	}
 
 
 	@SuppressWarnings("restriction")
-	public static void main(String[] args ) throws Exception {
+	public static void main(String[] args) throws Exception{
 		
 		List<X509Certificate> trustedCertificates = new ArrayList<>();
 
@@ -95,7 +104,7 @@ public class ComputeNodeServer implements ComputeNode {
 			public void checkClientTrusted(X509Certificate[] certs, String authType) {
 				System.err.println(certs[0].getSubjectX500Principal());
 			}
-
+	
 			@Override
 			public void checkServerTrusted(X509Certificate[] certs, String authType) {
 			}
@@ -108,8 +117,9 @@ public class ComputeNodeServer implements ComputeNode {
 
 		ctx.init(kmf.getKeyManagers(), trustAllCerts, null);
 
-		HttpsServer httpsServer = HttpsServer.create( new InetSocketAddress("0.0.0.0", COMPUTENODE_PORT), -1);
+		HttpsServer httpsServer = HttpsServer.create( new InetSocketAddress("0.0.0.0", 6666), -1);
 		httpsServer.setHttpsConfigurator(new HttpsConfigurator( ctx ));
+		
 		httpsServer.setHttpsConfigurator (new HttpsConfigurator(ctx) {
 		     @Override
 			public void configure (HttpsParameters params) {
@@ -119,16 +129,13 @@ public class ComputeNodeServer implements ComputeNode {
 		     }
 		 });
 		httpsServer.start();
-
-		//Props.parseFile(PROPS_FILENAME);
-		//String engineClass = Props.get(MAPREDUCE_ENGINE_PROP, SoapMapReduceEngine.class.toString());
-		//Log.fine("MapReduceEngine: " + engineClass);
-		
-		
-		
-		MapReduceEngine engine = new CentralizedMapReduceEngine();//(MapReduceEngine)Class.forName( engineClass).newInstance(); 
-		//Endpoint.publish(baseURI, new ComputeNodeServer( engine ) );
-		Endpoint endpoint = Endpoint.create(new ComputeNodeServer( engine ) );
-		endpoint.publish( httpsServer.createContext("/mapreduce") );
+		Endpoint endpoint = Endpoint.create(new ComputeNodeImpl("Remote", new RestBlobStorage()));
+        endpoint.publish( httpsServer.createContext("/mapreduce/") );
+		/*
+		String baseURI = "https://0.0.0.0:9999/mapreduce/";
+		Endpoint.publish(baseURI, new ComputeNodeImpl("Remote", new RestBlobStorage()));
+		*/
+		System.err.println("SOAP ComputeNode Server ready...");
 	}
+
 }
