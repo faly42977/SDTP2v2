@@ -32,7 +32,7 @@ abstract class RestClient {
 	public class InsecureHostnameVerifier implements HostnameVerifier {
 	    @Override
 	    public boolean verify(String hostname, SSLSession session) {
-	    	System.out.println(session.isValid());
+	    	//System.out.println(session.isValid());
 	        return true;
 	    }
 	}

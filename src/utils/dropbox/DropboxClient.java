@@ -43,12 +43,12 @@ public class DropboxClient{
 		try {
 			r = service.execute(createFile);
 			if (r.getCode() != 200) {
-				System.out.println(r.getBody());
-				System.out.println(r.getCode());
+				//System.out.println(r.getBody());
+				//System.out.println(r.getCode());
 				throw new RuntimeException( r.getMessage() ) ;
 
 			}
-			System.out.println("File successfully created..." + r.getCode());
+			//System.out.println("File successfully created..." + r.getCode());
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -70,12 +70,12 @@ public class DropboxClient{
 		try {
 			r = service.execute(delete);
 			if (r.getCode() != 200) {
-				System.out.println(r.getBody());
-				System.out.println(r.getCode());
+				//System.out.println(r.getBody());
+				//System.out.println(r.getCode());
 				throw new RuntimeException( r.getMessage() ) ;
 
 			}
-			System.out.println("File successfully deleted..." + r.getCode());
+			//System.out.println("File successfully deleted..." + r.getCode());
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -95,12 +95,12 @@ public class DropboxClient{
 		try {
 			r = service.execute(createDir);
 			if (r.getCode() != 200) {
-				System.out.println(r.getBody());
-				System.out.println(r.getCode());
+				//System.out.println(r.getBody());
+				//System.out.println(r.getCode());
 				throw new RuntimeException( r.getMessage() ) ;
 
 			}
-			System.out.println("File successfully created..." + r.getCode());
+			//System.out.println("File successfully created..." + r.getCode());
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -118,13 +118,13 @@ public class DropboxClient{
 		try {
 			r = service.execute(getFile);
 			if (r.getCode() != 200) {
-				System.out.println(r.getBody());
-				System.out.println(r.getCode());
+				//System.out.println(r.getBody());
+				//System.out.println(r.getCode());
 				throw new RuntimeException( r.getMessage() ) ;
 
 			}
-			System.out.println("Got file..." + r.getCode());
-			System.out.println(r.getBody().toString());
+			//System.out.println("Got file..." + r.getCode());
+			//System.out.println(r.getBody().toString());
 			return r.getBody().getBytes();
 		} catch (Exception e) {
 			e.printStackTrace();

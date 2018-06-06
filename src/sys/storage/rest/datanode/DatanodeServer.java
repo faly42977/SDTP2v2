@@ -12,7 +12,6 @@ import org.glassfish.jersey.server.ResourceConfig;
 
 import api.storage.Datanode;
 import discovery.Discover;
-import sys.mapreduce.centralized.CentralizedMapReduceEngine;
 import utils.IP;
 import utils.Props;
 
@@ -40,10 +39,11 @@ public class DatanodeServer {
 
 		//Allow the Datanode to be discovered...
 		new Thread( () -> Discover.me(DATANODE, serverURI) ).start();
-
+/*
 		//Select the MapReduce worker class from the .props file and launch it
 		Props.parseFile(PROPS_FILENAME);
 		String mrWorkerClass = Props.get(MAPREDUCE_WORKER_PROP, CentralizedMapReduceEngine.class.toString());
 		Class.forName(mrWorkerClass).newInstance(); 
+		*/
 	}
 }

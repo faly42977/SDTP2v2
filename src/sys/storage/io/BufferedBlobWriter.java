@@ -54,11 +54,11 @@ public class BufferedBlobWriter implements BlobWriter {
 			try {
 				Integer hash = Arrays.hashCode(rawBlock);
 				backups.generateBackup(block, rawBlock);
-				System.out.println("name: " + name );
-				System.out.println("rawBlock: " + rawBlock );
-				System.out.println("hashCode: " + hash );
+				//System.out.println("name: " + name );
+				//System.out.println("rawBlock: " + rawBlock );
+				//System.out.println("hashCode: " + hash );
 			}catch (Exception e) {
-				System.out.println("Error creating hash");
+				//System.out.println("Error creating hash");
 				e.printStackTrace();
 			}
 		}

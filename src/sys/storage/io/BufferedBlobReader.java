@@ -59,7 +59,7 @@ public class BufferedBlobReader implements BlobReader {
 			byte[] data = datanode.readBlock( block );
 			byte[] hash = backups.genHash(data);
 
-			System.out.println("Working for hash: " + hash);
+			//System.out.println("Working for hash: " + hash);
 
 			if (Arrays.equals(backups.getHash(block),hash)) 
 				return Arrays.asList( new String( backups.getBackup(block) ).split("\\R"));
@@ -69,7 +69,7 @@ public class BufferedBlobReader implements BlobReader {
 
 
 		} catch (Exception e) {
-			System.out.println("Error on fetchBlockLines");
+			//System.out.println("Error on fetchBlockLines");
 			e.printStackTrace();
 
 		}

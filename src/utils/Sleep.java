@@ -20,12 +20,12 @@ public class Sleep {
 			ms(500);
 			String msg = String.format("sleeping: %d s%80s\r", (deadline - System.currentTimeMillis()) / 1000, " ");
 			if (verbose && !prev.equals(msg)) {
-				System.out.printf(msg);
+				//System.out.printf(msg);
 				prev = msg;
 			}
 		}
-		if (verbose)
-			System.out.printf("%80s\r","");
+		//if (verbose)
+			//System.out.printf("%80s\r","");
 	}
 
 	public static void seconds(int s, boolean verbose) {

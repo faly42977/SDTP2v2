@@ -17,22 +17,26 @@ final public class Jobs {
 	
 	static Map<String, String > sources = new HashMap<>();
 
-	static public JavaJob<?> newJobInstance(BlobStorage storage, String jobClassBlob) {
+	
+	static protected JobInstance<?> newJobInstance(BlobStorage storage, String jobClassBlob) {
 		String source = sources.get( jobClassBlob );
 		if( source == null ) {
 			StringBuilder sb = new StringBuilder();
 			storage.readBlob(jobClassBlob).forEach(line -> sb.append(line).append('\n'));
 			sources.put( jobClassBlob, source = sb.toString());
 		}
-		return new JavaJob<MapReducer<?, ?, ?, ?>>(Java.newInstance(jobClassBlob, source ));
+		return new JobInstance<MapReducer<?, ?, ?, ?>>(Java.newInstance(jobClassBlob, source ));
 	}
 	
+	/*
+	*
+	*
+	*/
+	static class JobInstance<T extends MapReducer<?, ?, ?, ?>> {
+		protected final T instance;
+		protected final Type[] kvTypes;
 
-	public static class JavaJob<T extends MapReducer<?, ?, ?, ?>> {
-		public final T instance;
-		private final Type[] kvTypes;
-
-		JavaJob(T instance) {
+		JobInstance(T instance) {
 			this.instance = instance;
 			kvTypes = ((ParameterizedType) instance.getClass().getGenericSuperclass()).getActualTypeArguments();
 		}
@@ -45,4 +49,5 @@ final public class Jobs {
 			return kvTypes[3];
 		}
 	}
+	
 }

@@ -25,8 +25,8 @@ public class BackupManager {
 	}
 	
 	public boolean verifyHash(String id, byte[] hash) {
-		System.out.println("comparing hashes:");
-		System.out.println(hashes.get(id)+"<->"+hash);
+		//System.out.println("comparing hashes:");
+		//System.out.println(hashes.get(id)+"<->"+hash);
 		if (hashes.containsKey(id) && Arrays.equals(hash, hashes.get(id)))
 			return true;
 		else 
@@ -34,8 +34,8 @@ public class BackupManager {
 	}
 	
 	public byte[] getHash(String id) {
-		System.out.println("getting hash for: " + id);
-		System.out.println("A Hash é_" +hashes.get(id) );
+		//System.out.println("getting hash for: " + id);
+		//System.out.println("A Hash é_" +hashes.get(id) );
 		return hashes.get(id);
 	}
 	

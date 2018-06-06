@@ -36,16 +36,16 @@ public class DatanodeResources implements Datanode {
 	// Second parameter is only used in the GC version...
 	public String createBlock(byte[] data, String blob) {
 		String id = Random.key128();
-		System.out.println("-------->create: " +id);
+		//System.out.println("-------->create: " +id);
 		blockCache.put( id, data );
 		IO.write( new File( id ), data);
 		hashes.put(id, genHash(data));
-		System.out.println(hashes);
+		//System.out.println(hashes);
 		return baseURI.concat(id);
 	}
 
 	public void deleteBlock(String block) {
-		System.out.println("-------->delete: " +block);
+		//System.out.println("-------->delete: " +block);
 		blockCache.invalidate( block );		
 		File file = new File(block);
 		if (file.exists())
@@ -55,7 +55,7 @@ public class DatanodeResources implements Datanode {
 	}
 
 	public byte[] readBlock(String block) {
-		System.out.println("-------->read: " +block);
+		//System.out.println("-------->read: " +block);
 		byte[] data = blockCache.getIfPresent( block );
 		if( data == null ) {
 			File file = new File(block);
@@ -72,11 +72,11 @@ public class DatanodeResources implements Datanode {
 
 	private byte[] markOrReturn(String block, byte[] data) {
 		if(!hashes.containsKey(block)) {
-			System.out.println(hashes);
-			System.out.println("CANT FIND HASH: " + block);
+			//System.out.println(hashes);
+			//System.out.println("CANT FIND HASH: " + block);
 			return data;
 		}	
-		System.out.println(hashes);
+		//System.out.println(hashes);
 		if(genHash(data).equals(hashes.get(block)))
 			return data;
 		else

@@ -5,7 +5,7 @@ datanode-mainclass=sys.storage.rest.datanode.DatanodeServer
 datanode-port=9999
 datanode-folder=/Datanode
 
-computenode-mainclass=sys.mapreduce.ComputeNodeServer
+computenode-mainclass=sys.mapreduce.ComputeNodeImpl
 computenode-port=6666
 
 blobstorage-class=sys.storage.rest.RestBlobStorage
@@ -33,6 +33,5 @@ dropbox-access-token=_OX6R4XogdAAAAAAAAAAMMgVtppFSGpqdtec7SRkDYMBaEG99UapvbS2ISU
 dropbox-datanode-folder=/Datanode
 dropbox-datanode-server-mainclass=sys.storage.rest.datanode.DropboxDatanodeServer
 
-mapreduce-worker=sys.mapreduce.centralized.CentralizedMapReduceEngine
 
 dropbox-datanode-server-port=9999
