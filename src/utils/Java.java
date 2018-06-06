@@ -29,6 +29,9 @@ public class Java {
 	private static ByteClassLoader loader = new ByteClassLoader();
 	
 	public static <T> Class<T> compile(String className, String source) {
+		System.out.println("enter compile");
+		System.out.println("className: "+className);
+		System.out.println("source: "+source);
 		try {
 			JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 			DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
@@ -44,9 +47,11 @@ public class Java {
 				});
 			
 			if (success ) 
-				loader.addAll( fileManager.classes );			
+				loader.addAll( fileManager.classes );
+			System.out.println("no exception on compile");
 			return (Class<T>) loader.findClass(className);
 		} catch (Exception x) {
+			System.out.println("Exception on compile");
 			x.printStackTrace();
 		}
 		return null;
@@ -57,6 +62,9 @@ public class Java {
 	}
 
 	synchronized public static <T> T newInstance( String className, String source ) {
+		System.out.println("enter new Instance");
+		System.out.println("className: "+className);
+		System.out.println("source: "+source);
 		try {
 			Class<T> _class = (Class<T>)loader.findClass(className);
 			if( _class == null )

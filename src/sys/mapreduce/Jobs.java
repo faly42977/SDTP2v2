@@ -19,12 +19,17 @@ final public class Jobs {
 
 	
 	static protected JobInstance<?> newJobInstance(BlobStorage storage, String jobClassBlob) {
+		System.out.println("enter newJobInstance");
+		System.out.println(storage);
+		System.out.println(jobClassBlob);
 		String source = sources.get( jobClassBlob );
 		if( source == null ) {
 			StringBuilder sb = new StringBuilder();
 			storage.readBlob(jobClassBlob).forEach(line -> sb.append(line).append('\n'));
 			sources.put( jobClassBlob, source = sb.toString());
+			System.out.println(source);
 		}
+		System.out.println("Source ="+ source);
 		return new JobInstance<MapReducer<?, ?, ?, ?>>(Java.newInstance(jobClassBlob, source ));
 	}
 	

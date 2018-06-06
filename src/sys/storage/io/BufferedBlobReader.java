@@ -61,11 +61,15 @@ public class BufferedBlobReader implements BlobReader {
 
 			//System.out.println("Working for hash: " + hash);
 
-			if (Arrays.equals(backups.getHash(block),hash)) 
-				return Arrays.asList( new String( backups.getBackup(block) ).split("\\R"));
-
-			else 
-				return Arrays.asList(new String("CORRUPTED BLOCK"));
+			//if (Arrays.equals(backups.getHash(block),hash)) 
+			//if(!backups.hasBackup(block))
+			//	return Arrays.asList( new String( data ).split("\\R"));
+			//if(backups.genHash(data).equals(backups.getHash(block)))
+				return Arrays.asList( new String( data ).split("\\R"));
+			//else
+			//	return Arrays.asList(new String("CORRUPTED BLOCK"));
+			//else 
+			//	return Arrays.asList(new String("CORRUPTED BLOCK"));
 
 
 		} catch (Exception e) {
