@@ -1,7 +1,6 @@
 package sys.storage.rest.datanode;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,6 +11,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
 import api.storage.Datanode;
+import sys.storage.io.BackupManager;
 import utils.Base58;
 import utils.Hash;
 import utils.IO;
@@ -23,6 +23,7 @@ public class DatanodeResources implements Datanode {
 
 	protected final String baseURI;
 	protected Map<String,String> hashes;
+	protected BackupManager b = new BackupManager(); 
 
 	protected Cache<String, byte[]> blockCache = Caffeine.newBuilder()
 			.maximumSize( MAX_BLOCKS_IN_CACHE )
@@ -35,7 +36,7 @@ public class DatanodeResources implements Datanode {
 
 	// Second parameter is only used in the GC version...
 	public String createBlock(byte[] data, String blob) {
-		String id = Random.key128();
+		String id = Random.key128()+"-"+b.genHash(data);
 		//System.out.println("-------->create: " +id);
 		blockCache.put( id, data );
 		IO.write( new File( id ), data);
@@ -57,30 +58,25 @@ public class DatanodeResources implements Datanode {
 	public byte[] readBlock(String block) {
 		//System.out.println("-------->read: " +block);
 		byte[] data = blockCache.getIfPresent( block );
+		String hash = block.split("-")[1];
 		if( data == null ) {
 			File file = new File(block);
 			if (file.exists()) {
 				data = IO.read( file );
 				blockCache.put( block, data);
-				return markOrReturn(block,data);			
+				return markOrReturn(hash,data);			
 			}			
 		} else {
-			return markOrReturn(block,data);
+			return markOrReturn(hash,data);
 		}
 		throw new WebApplicationException(Status.NOT_FOUND);
 	}
 
-	private byte[] markOrReturn(String block, byte[] data) {
-		if(!hashes.containsKey(block)) {
-			//System.out.println(hashes);
-			//System.out.println("CANT FIND HASH: " + block);
-			return data;
-		}	
-		//System.out.println(hashes);
-		if(genHash(data).equals(hashes.get(block)))
+	private byte[] markOrReturn(String hash, byte[] data) {
+		if(hash.equals(b.genHash(data)))
 			return data;
 		else
-			return "<<<CORRUPTED BLOCK>>>".getBytes();
+			return "CORRUPTED BLOCK".getBytes();
 	}	
 
 	private String genHash(byte[] data) {

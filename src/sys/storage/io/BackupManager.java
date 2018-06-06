@@ -4,15 +4,16 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import utils.Base58;
 import utils.Hash;
 
 public class BackupManager {
 
 	Map<String, byte[]> backups;
-	Map<String, byte[]> hashes;
+	Map<String, String> hashes;
 	public BackupManager() {
 		this.backups = new HashMap<String, byte[]>();
-		this.hashes = new HashMap<String,byte[]>();
+		this.hashes = new HashMap<String,String>();
 	}
 	
 	public void generateBackup(String id,  byte[] backup) {
@@ -23,7 +24,7 @@ public class BackupManager {
 	public boolean hasBackup(String id) {
 		return this.backups.containsKey(id);
 	}
-	
+	/*
 	public boolean verifyHash(String id, byte[] hash) {
 		//System.out.println("comparing hashes:");
 		//System.out.println(hashes.get(id)+"<->"+hash);
@@ -32,8 +33,8 @@ public class BackupManager {
 		else 
 			return false;
 	}
-	
-	public byte[] getHash(String id) {
+	*/
+	public String getHash(String id) {
 		//System.out.println("getting hash for: " + id);
 		//System.out.println("A Hash é_" +hashes.get(id) );
 		return hashes.get(id);
@@ -43,8 +44,8 @@ public class BackupManager {
 		return backups.get(id);
 	}
 
-	public byte[] genHash(byte[] data) {
-		return Hash.md5(data);
+	public String genHash(byte[] data) {
+		return Base58.encode(Hash.md5(data));
 	}
 	
 }

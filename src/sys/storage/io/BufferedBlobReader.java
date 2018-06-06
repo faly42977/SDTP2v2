@@ -57,17 +57,19 @@ public class BufferedBlobReader implements BlobReader {
 	private List<String> fetchBlockLines(String block) {
 		try {
 			byte[] data = datanode.readBlock( block );
-			byte[] hash = backups.genHash(data);
+			
 
 			//System.out.println("Working for hash: " + hash);
 
 			//if (Arrays.equals(backups.getHash(block),hash)) 
-			//if(!backups.hasBackup(block))
-			//	return Arrays.asList( new String( data ).split("\\R"));
-			//if(backups.genHash(data).equals(backups.getHash(block)))
+			if(!backups.hasBackup(block)) {
+				System.out.println("NO BACKUP");
+				return Arrays.asList( new String( data ).split("\\R"));	
+			}
+			if(backups.genHash(data).equals(backups.getHash(block)))
 				return Arrays.asList( new String( data ).split("\\R"));
-			//else
-			//	return Arrays.asList(new String("CORRUPTED BLOCK"));
+			else
+				return Arrays.asList(new String("CORRUPTED BLOCK"));
 			//else 
 			//	return Arrays.asList(new String("CORRUPTED BLOCK"));
 
